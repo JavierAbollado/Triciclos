@@ -112,7 +112,7 @@ Función principal para contar el nº de triciclos de un grafo, el cual tiene su
 """
 def main():
     with SparkContext() as sc:
-        filename = sys.argv[1]
+        filename = sys.argv[2]
         #arista = sc.textFile(filename).flatMap(get_edge).distinct()
         arista = load_and_clean_graph(filename, sc)
         vertices = get_vertices(arista)
@@ -127,7 +127,7 @@ def main_mult():
         files = []
         # save all the filenames
         try:
-            i = 0
+            i = 1
             while True:
                 i += 1
                 files.append(sys.argv[i])
@@ -140,4 +140,12 @@ def main_mult():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        modo = sys.argv[1]
+        if modo == "-1":
+            main()
+        else:   # modo == "-2"
+            main_mult()
+    except:
+        pass
+        

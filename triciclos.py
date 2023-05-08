@@ -74,7 +74,8 @@ Recibimos un objeto SparkContext() creado con 'load_and_clean_data()' y contamos
 cuántos triciclos hay en dicho grafo
 """
 def count_triciclos_2(data):
-    data.groupByKey().mapValues(get_combinations)
+    # data.groupByKey().mapValues(get_combinations)
+    pass
     
 
 """

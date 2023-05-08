@@ -78,45 +78,38 @@ def count_triciclos_2(data):
     
 
 """
-Recibimos los vertices y las aristas y contamos
+Recibimos los vértices y las aristas y contamos
 cuántos triciclos hay en dicho grafo
 """
 def count_triciclos(vertices, arista):
 
-    print(3*"\n", "RESULTADOS:\n")    
-
-    print("Vertices: ", vertices.collect())
+    print(3*"\n", "RESULTADOS:\n")  
     
-    # Cogemos todas los vertices
-    aux_store = vertices.collect()
+    # Creamos los posibles triciclos
+    posibles_triciclos = arista.flatMap(lambda e: [(e[0], e[1], x) for x in vertices.collect() if x not in e])
     
-    # Creamos los posibles triangulos
-    triangle_arista = arista.flatMap(lambda e: [(e[0], e[1], x) for x in aux_store if x not in e])
-    
-    print("T_arista: ", triangle_arista.collect())
     edge_pairs = arista.flatMap(lambda e: [((e[0], e[1]), e[1]), ((e[1], e[0]), e[0])])
-    print("Edge_Pairs: ", edge_pairs.collect())
+
     # Preparamos el formato para el join
-    triangle_pairs = triangle_arista.flatMap(lambda e: [((e[0], e[1]), e[2])])
-    print("NEW_T", triangle_pairs.collect())
+    triangle_pairs = posibles_triciclos.flatMap(lambda e: [((e[0], e[1]), e[2])])
     
     joined_pairs = triangle_pairs.join(edge_pairs)
-    print("JOIN: ", joined_pairs.collect())
     
-    aux_arista = arista.collect()
+    arista_collected = arista.collect()
     
-    
-    # Buscamos los triangulos compatibles
+    # Buscamos los triciclos del grafo
     triangle_count_pairs = joined_pairs.filter(
-                    lambda x: (x[0][0], x[1][0]) in aux_arista
+                    lambda x: (x[0][0], x[1][0]) in arista_collected
                         ).distinct().filter(
-                            lambda x: (x[1][0],x[1][1]) in aux_arista)
-    print("posibles:", triangle_count_pairs.collect())
+                            lambda x: (x[1][0],x[1][1]) in arista_collected)
+
     resultado = triangle_count_pairs.count()
-    print("Resultado: ", resultado)
+
     return resultado
 
-
+"""
+Función principal para contar el nº de triciclos de un grafo, el cual tiene sus aristas guardadas en un archivo de texto
+"""
 def main():
     with SparkContext() as sc:
         filename = sys.argv[1]
@@ -126,11 +119,21 @@ def main():
         resultado = count_triciclos(vertices, arista)
 
 
+"""
+Función principal para contar el nº de triciclos de un grafo, compuesto por multiples grafos guardados en distintos archivos de texto
+"""
 def main_mult():
     with SparkContext() as sc:
-        filename = sys.argv[1]
-        #arista = sc.textFile(filename).flatMap(get_edge).distinct()
-        arista = load_and_clean_multiples_ficheros(ficheros, sc)
+        files = []
+        # save all the filenames
+        try:
+            i = 0
+            while True:
+                i += 1
+                files.append(sys.argv[i])
+        except:
+            pass
+        arista = load_and_clean_multiples_ficheros(files, sc)
         vertices = get_vertices(arista)
         resultado = count_triciclos(vertices, arista)
 

@@ -53,7 +53,37 @@ def load_and_clean_graph(filename, sc):
     return data
 ```
 
+### 3) count
 
+Una vez tenemos las aristas organizadas y sin repetir, procedemos a contar los triciclos. Para ello, podemos obtener a partir de los vertices ```vertices = data.flatMap(lambda e : e).distinct()``` todas las posibles combinaciones de triclos. Luego ir recorriendo las parejas dobles posibles y finalmente contar que llegan a crearse.
+
+```python
+def count_triciclos(vertices, arista):
+
+    print(3*"\n", "RESULTADOS:\n")  
+    
+    # Creamos los posibles triciclos
+    posibles_triciclos = arista.flatMap(lambda e: [(e[0], e[1], x) for x in vertices.collect() if x not in e])
+    
+    edge_pairs = arista.flatMap(lambda e: [((e[0], e[1]), e[1]), ((e[1], e[0]), e[0])])
+
+    # Preparamos el formato para el join
+    triangle_pairs = posibles_triciclos.flatMap(lambda e: [((e[0], e[1]), e[2])])
+    
+    joined_pairs = triangle_pairs.join(edge_pairs)
+    
+    arista_collected = arista.collect()
+    
+    # Buscamos los triciclos del grafo
+    triangle_count_pairs = joined_pairs.filter(
+                    lambda x: (x[0][0], x[1][0]) in arista_collected
+                        ).distinct().filter(
+                            lambda x: (x[1][0],x[1][1]) in arista_collected)
+
+    resultado = triangle_count_pairs.count()
+
+    return resultado
+```
 
 
 
